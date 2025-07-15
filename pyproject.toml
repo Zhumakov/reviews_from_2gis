@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
   "beautifulsoup4>=4.13.4",
   "httpx>=0.28.1",
+  "lxml>=6.0.0",
   "pytest>=8.4.1",
   "pytest-asyncio>=1.0.0",
 ]
@@ -37,6 +38,7 @@ ignore = [
   "TRY003",
   "FURB101",
   "PTH123",
+  "PLR2004",
 ]
 exclude = []
 select = ["ALL"]
