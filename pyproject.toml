@@ -1,0 +1,47 @@
+[project]
+name = "reviews-from-2gis"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+  "beautifulsoup4>=4.13.4",
+  "httpx>=0.28.1",
+  "pytest>=8.4.1",
+  "pytest-asyncio>=1.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = "tests"
+python_files = "*_test.py *_tests.py test_*.py tests_*.py"
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+fix = true
+preview = true
+
+[tool.ruff.lint]
+ignore = [
+  "D100",
+  "CPY001",
+  "D212",
+  "COM812",
+  "UP035",
+  "S101",
+  "PT003",
+  "RUF001",
+  "RUF002",
+  "TRY003",
+  "FURB101",
+  "PTH123",
+]
+exclude = []
+select = ["ALL"]
+
+[tool.ruff.format]
+docstring-code-format = true
+quote-style = "double"
+indent-style = "space"
