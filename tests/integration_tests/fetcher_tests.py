@@ -3,7 +3,6 @@
 import pytest
 
 from source.html_fetcher import HtmlFetcher
-from tests.conftest import TEST_URL
 
 
 @pytest.mark.parametrize(

@@ -5,9 +5,10 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium_stealth import stealth
 
+from main import LOADING_WAIT
+
 
 REVIEWS_CONTAINER_CSS_SELECTOR = "div._qvsf7z"
-SLEEP_TIME = 3
 
 
 class HtmlFetcher:
@@ -41,7 +42,7 @@ class HtmlFetcher:
         )
         try:
             driver.get(self.url)
-            await asyncio.sleep(SLEEP_TIME + 2)
+            await asyncio.sleep(LOADING_WAIT + 2)
 
             while True:
                 reviews_container = driver.find_element(
@@ -53,7 +54,7 @@ class HtmlFetcher:
                     "arguments[0].scrollIntoView()",
                     reviews_container.find_elements(By.CSS_SELECTOR, "div._1k5soqfl")[-1],
                 )
-                await asyncio.sleep(SLEEP_TIME)
+                await asyncio.sleep(LOADING_WAIT)
 
                 new_height = reviews_container.get_property("scrollHeight")
                 if new_height == height:
