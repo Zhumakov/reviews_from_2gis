@@ -10,6 +10,8 @@ dependencies = [
   "lxml>=6.0.0",
   "pytest>=8.4.1",
   "pytest-asyncio>=1.0.0",
+  "selenium>=4.34.2",
+  "selenium-stealth>=1.0.6",
 ]
 
 [tool.pytest.ini_options]
@@ -39,6 +41,9 @@ ignore = [
   "FURB101",
   "PTH123",
   "PLR2004",
+  "I001",
+  "B005",
+  "FBT001",
 ]
 exclude = []
 select = ["ALL"]
