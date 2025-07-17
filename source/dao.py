@@ -4,13 +4,13 @@ import aiosqlite
 TABLE_CREATE_QUERY = """
 CREATE TABLE IF NOT EXISTS reviews (
     ordinal_numer INTEGER NOT NULL,
-    url TEXT NOT NULL,
+    firm_id TEXT NOT NULL,
     username TEXT NOT NULL,
     date TEXT NOT NULL,
     review TEXT NOT NULL,
     rating INTEGER NOT NULL,
 
-    PRIMARY KEY (ordinal_numer, url),
+    PRIMARY KEY (ordinal_numer, firm_id),
     CHECK (rating BETWEEN 1 AND 5)
 );
 """
@@ -45,7 +45,7 @@ class ReviewsDAO:
             )
             await db.commit()
 
-    async def insert_review(self, review_data: dict, ordinal_numer: int, firm_url: str) -> None:
+    async def insert_review(self, review_data: dict, ordinal_numer: int, firm_id: str) -> None:
         """
         Вставляет в таблицу отзыв.
 
@@ -55,18 +55,18 @@ class ReviewsDAO:
         Args:
             review_data: данные об отзыве
             ordinal_numer: порядковый номер отзыва
-            firm_url: url организации, на которую написан отзыв
+            firm_id: id организации, на которую написан
 
         """
         async with aiosqlite.connect(self.db_name) as db:
             await db.execute(
                 """
-                INSERT INTO reviews (ordinal_numer, url, username, date, review, rating)
+                INSERT INTO reviews (ordinal_numer, firm_id, username, date, review, rating)
                 VALUES (?, ?, ?, ?, ?, ?);
                 """,
                 (
                     ordinal_numer,
-                    firm_url,
+                    firm_id,
                     review_data.get("username", ""),
                     review_data.get("date", ""),
                     review_data.get("review", ""),
@@ -74,3 +74,6 @@ class ReviewsDAO:
                 ),
             )
             await db.commit()
+
+    async def get_last_insert_review(self, url: str) -> dict:
+        pass

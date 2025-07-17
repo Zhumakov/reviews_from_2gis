@@ -2,15 +2,14 @@ import asyncio
 import os
 
 
-import html_fetcher
-from parser import ReviewesParser
-from url_normilizer import UrlNormilizer
-from dao import ReviewsDAO
+from source.html_fetcher import HtmlFetcher
+from source.parser import ReviewesParser
+from source.url_normilizer import UrlNormilizer
+from source.dao import ReviewsDAO
 
 
 DB_NAME = "reviews.db"
 REVIEWS_ENDPOINT = "/tab/reviews"
-LOADING_WAIT = 2
 BRANCH_URLS = [
     "https://2gis.ru/ufa/search/%D0%B2%D0%BA%D1%83%D1%81%D0%BD%D0%BE%20%D0%B8%20%D1%82%D0%BE%D1%87%D0%BA%D0%B0/firm/70000001057550594",
     "https://2gis.ru/ufa/inside/70030076353167626/query/%D0%B2%D0%BA%D1%83%D1%81%D0%BD%D0%BE%20%D0%B8%20%D1%82%D0%BE%D1%87%D0%BA%D0%B0/firm/70000001082903174",
@@ -29,7 +28,7 @@ async def parsing_url(url: str) -> list[dict[str, str]]:
         Список отзывов
 
     """
-    html_page = await html_fetcher.HtmlFetcher(url).get_html_content()
+    html_page = await HtmlFetcher(url).get_html_content()
     return ReviewesParser(html_page).get_rewiews()
 
 
@@ -49,7 +48,7 @@ async def main() -> None:
     urls = [normilizer.normilize(url) for url in BRANCH_URLS]
 
     print("Create tasks")
-    tasks = [parsing_url(url) for url in urls]
+    tasks = [parsing_url(url) for url, _ in urls]
     pending = list(asyncio.as_completed(tasks))
 
     print("Running tasks")
@@ -65,8 +64,8 @@ async def main() -> None:
 
         # Считываем отзывы с конца
         reviews.reverse()
-        for ordinal_number, review_data in enumerate(reviews):
-            await reviews_dao.insert_review(review_data, ordinal_number, urls[i])
+        for ordinal_number, review_data in enumerate(reviews, start=1):
+            await reviews_dao.insert_review(review_data, ordinal_number, urls[i][1])
 
         i += 1
 

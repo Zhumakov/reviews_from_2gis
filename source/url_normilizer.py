@@ -14,7 +14,7 @@ class UrlNormilizer:
         """
         self.review_endpoint = review_endpoint
 
-    def normilize(self, url: str) -> str:
+    def normilize(self, url: str) -> tuple[str, str]:
         """
         Нормализует url, чтобы он указывал на вкладку с отзывами.
 
@@ -22,23 +22,20 @@ class UrlNormilizer:
             url: исходный адрес
 
         Returns:
-            Измененный адрес, или исходный если он является верным
+            Tuple:
+                1 - url адрес на вкладку с отзывами,
+                2 - id организации
 
         Raises:
             ValueError: Неправильная ссылка
 
         """
-        # Проверяет, является ли исходный url правильным эндпоинтом
-        # он должен оканчиваться например на /tab/reviews
-        endpoint_pattern = re.compile(f"https://.*{self.review_endpoint}[^/]*")
-        if endpoint_pattern.fullmatch(url):
-            return url
-
-        firm_id_pattern = re.compile(r"(https://.*/firm/\d+).*")
+        firm_id_pattern = re.compile(r"(https://.*/firm/(\d+)).*")
         firm_page = firm_id_pattern.fullmatch(url)
         if not firm_page:
             err_msg = f"Неправильная ссылка! URL: {url}"
             raise ValueError(err_msg)
 
-        firm_page = firm_page.group(1)
-        return firm_page + self.review_endpoint
+        firm_url = firm_page.group(1)
+        firm_id = firm_page.group(2)
+        return firm_url + self.review_endpoint, firm_id
