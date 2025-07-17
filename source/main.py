@@ -17,7 +17,7 @@ BRANCH_URLS = [
 ]
 
 
-async def parsing_url(url: str) -> list[dict[str, str]]:
+async def parsing_url(url: str, last_saved_review: int) -> list[dict[str, str]]:
     """
     Скачивает html страницу с отзывами и парсит её.
 
@@ -28,8 +28,8 @@ async def parsing_url(url: str) -> list[dict[str, str]]:
         Список отзывов
 
     """
-    html_page = await HtmlFetcher(url).get_html_content()
-    return ReviewesParser(html_page).get_rewiews()
+    html_page = await HtmlFetcher(url).get_html_content(last_saved_review)
+    return ReviewesParser(html_page).get_rewiews(last_saved_review)
 
 
 async def main() -> None:
@@ -44,28 +44,36 @@ async def main() -> None:
         global LOADING_WAIT
         LOADING_WAIT = float(new_loading_wait)
 
+    reviews_dao = ReviewsDAO(DB_NAME)
+    await reviews_dao.setup_db()
+
     normilizer = UrlNormilizer(REVIEWS_ENDPOINT)
-    urls = [normilizer.normilize(url) for url in BRANCH_URLS]
+    urls_data = [normilizer.normilize(url) for url in BRANCH_URLS]
+
+    last_saved_review = [
+        await reviews_dao.get_last_insert_review(urls_data[i].firm_id)
+        for i in range(len(urls_data))
+    ]
 
     print("Create tasks")
-    tasks = [parsing_url(url) for url, _ in urls]
+    tasks = [
+        parsing_url(urls_data[i].reviews_url, last_saved_review[i]) for i in range(len(urls_data))
+    ]
     pending = list(asyncio.as_completed(tasks))
 
     print("Running tasks")
-    reviews_dao = ReviewsDAO(DB_NAME)
-    await reviews_dao.setup_db()
-    print("Database setup")
 
     i = 0
     while pending:
         done_taks = pending.pop(0)
+        print("Await url content")
         reviews = await done_taks
-        print(f"Get {i} task")
+        print(f"Get reviews from {i} url")
 
         # Считываем отзывы с конца
         reviews.reverse()
         for ordinal_number, review_data in enumerate(reviews, start=1):
-            await reviews_dao.insert_review(review_data, ordinal_number, urls[i][1])
+            await reviews_dao.insert_review(review_data, ordinal_number, urls_data[i].firm_id)
 
         i += 1
 
