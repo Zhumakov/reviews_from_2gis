@@ -6,6 +6,8 @@ from bs4 import BeautifulSoup, Tag
 USERNAME_CSS_SELECTOR = "span._16s5yj36"
 DATE_CSS_SELECTOR = "div._a5f6uz"
 
+NUMBER_OF_REVIEWS_CSS_SELECTOR = "span._1xhlznaa"
+TAB_NAVIGATOR_CSS_SELECTOR = "div._qvsf7z"
 REVIEW_CSS_SELECTOR = "div._49x36f > a"
 RATING_CSS_SELECTOR = "div._1fkin5c"
 
@@ -27,7 +29,7 @@ class ReviewesParser:
         """
         self.html_content = html_content
 
-    def get_rewiews(self) -> list[dict[str, str]]:
+    def get_rewiews(self, last_saved_review: int = 0) -> list[dict[str, str]]:
         """
         Парсит html страницу и вытаскивает из неё все отзывы в виде словаря.
 
@@ -43,10 +45,18 @@ class ReviewesParser:
 
         """
         soup = BeautifulSoup(self.html_content, "lxml")
-        tab_navigator = soup.select_one("div._qvsf7z")
+        tab_navigator = soup.select_one(TAB_NAVIGATOR_CSS_SELECTOR)
         if tab_navigator is None:
             err_msg = "На странице не найдена вкладка с отзывами"
             raise ParserError(err_msg)
+
+        number_of_reviews = tab_navigator.select_one(NUMBER_OF_REVIEWS_CSS_SELECTOR)
+        if number_of_reviews is None:
+            err_msg = "Не найдена информация о количестве отзывов"
+            raise ParserError
+
+        number_of_reviews = int(number_of_reviews.text)
+        number_of_new_reviews = number_of_reviews - last_saved_review
 
         reviews_tab = tab_navigator.find_parents("div")
         if len(reviews_tab) < 2:
@@ -55,9 +65,12 @@ class ReviewesParser:
 
         reviews_container = reviews_tab[1]
         reviews = reviews_container.select("div._1k5soqfl")
+        if len(reviews) < number_of_new_reviews:
+            err_msg = "Количество отзывов на странице, меньше чем новых отзывов"
+            raise ParserError(err_msg)
 
         list_reviews: list[dict[str, str]] = []
-        for rewiew in reviews:
+        for rewiew in reviews[:number_of_new_reviews]:
             rewiew_field = self.__parse_review_fields(rewiew)
             list_reviews.append(rewiew_field)
 

@@ -41,15 +41,49 @@ async def test_review_parser(
 
     """
     parser = ReviewesParser(html_content)
-    comments: list[dict[str, str]] = parser.get_rewiews()
+    reviews: list[dict[str, str]] = parser.get_rewiews()
 
-    assert comments, "Отзывы не были найдены"
+    assert reviews, "Отзывы не были найдены"
 
-    for comment in comments:
-        if plained_comment in comment.get("review", ""):
-            assert plained_date in comment.get("date", "")
-            assert plained_username in comment.get("username", "")
-            assert plained_rating in comment.get("rating", "")
+    for review in reviews:
+        if plained_comment in review.get("review", ""):
+            assert plained_date in review.get("date", "")
+            assert plained_username in review.get("username", "")
+            assert plained_rating in review.get("rating", "")
             break
     else:
         pytest.fail("Ожидаемого отзыва не найдено")
+
+
+@pytest.mark.parametrize(
+    ("plained_username", "last_saved_message", "find"),
+    [
+        ("кира ракова", 87, False),
+        ("Емеля Емеля", 87, True),
+    ],
+)
+async def test_chunk_review_parser(
+    plained_username: str,
+    find: bool,
+    html_content: str,
+) -> None:
+    """
+    Тестирует частичный парсинг отзывов со страницы.
+
+    Args:
+        plained_username: имя пользователя искомого отзыва
+        find: должен ли быть найден отзыв
+        html_content: html сраница с отзывами
+
+    """
+    parser = ReviewesParser(html_content)
+    reviews: list[dict[str, str]] = parser.get_rewiews()
+
+    assert reviews, "Отзывы не были найдены"
+
+    for review in reviews:
+        if plained_username in review.get("username", ""):
+            assert find
+            break
+    else:
+        assert not find
