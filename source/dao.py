@@ -100,3 +100,36 @@ class ReviewsDAO:
             if row is None:
                 return 0
             return row[0]
+
+    async def get_all_reviews_to_firm(self, firm_id: str) -> list[dict[str, str]]:
+        """
+        Возвращает список со всеми отзывами указанной организации.
+
+        Args:
+            firm_id: firm_id
+
+        Returns:
+            Список с отзывами в виде словарей
+
+        """
+        async with aiosqlite.connect(self.db_name) as db:
+            cursor = await db.execute(
+                """
+                SELECT * FROM reviews
+                WHERE firm_id = ?
+                ORDER BY ordinal_number;
+                """,
+                (firm_id,),
+            )
+            rows = await cursor.fetchall()
+            reviews = []
+            for row in rows:
+                reviews.append({
+                    "ordinal_number": row[0],
+                    "username": row[2],
+                    "date": row[3],
+                    "review": row[4],
+                    "rating": row[5],
+                })
+
+            return reviews

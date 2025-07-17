@@ -8,7 +8,7 @@ from source.url_normilizer import UrlNormilizer
 from source.dao import ReviewsDAO
 
 
-DB_NAME = "reviews.db"
+DB_PATH = "reviews_db/reviews.db"
 REVIEWS_ENDPOINT = "/tab/reviews"
 BRANCH_URLS = [
     "https://2gis.ru/ufa/search/%D0%B2%D0%BA%D1%83%D1%81%D0%BD%D0%BE%20%D0%B8%20%D1%82%D0%BE%D1%87%D0%BA%D0%B0/firm/70000001057550594",
@@ -49,7 +49,7 @@ async def main() -> None:
         LOADING_WAIT = float(new_loading_wait)
 
     # Инициализация базы данных
-    reviews_dao = ReviewsDAO(DB_NAME)
+    reviews_dao = ReviewsDAO(DB_PATH)
     await reviews_dao.setup_db()
 
     # Нормализация эндпоинтов
@@ -63,23 +63,18 @@ async def main() -> None:
     ]
 
     # Постановка асинхронных задач на парсинг страниц
-    print("Create tasks")
     tasks = [
         parsing_url(urls_data[i].reviews_url, urls_data[i].firm_id, last_saved_review[i])
         for i in range(len(urls_data))
     ]
     pending = list(asyncio.as_completed(tasks))
 
-    print("Running tasks")
-
     while pending:
         done_taks = pending.pop(0)
-        print("Await url content")
         # Ожидание выполнения задачи
         reviews, firm_id = await done_taks
 
         # Считывание отзывов с конца
-        print("Resive reviews")
         reviews.reverse()
         for ordinal_number, review_data in enumerate(reviews, start=1):
             await reviews_dao.insert_review(review_data, ordinal_number, firm_id)
