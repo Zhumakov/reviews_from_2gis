@@ -5,8 +5,10 @@ import os
 import html_fetcher
 from parser import ReviewesParser
 from url_normilizer import UrlNormilizer
+from dao import ReviewsDAO
 
 
+DB_NAME = "reviews.db"
 REVIEWS_ENDPOINT = "/tab/reviews"
 LOADING_WAIT = 2
 BRANCH_URLS = [
@@ -27,7 +29,6 @@ async def parsing_url(url: str) -> list[dict[str, str]]:
         Список отзывов
 
     """
-    print("Task start")
     html_page = await html_fetcher.HtmlFetcher(url).get_html_content()
     return ReviewesParser(html_page).get_rewiews()
 
@@ -47,16 +48,27 @@ async def main() -> None:
     normilizer = UrlNormilizer(REVIEWS_ENDPOINT)
     urls = [normilizer.normilize(url) for url in BRANCH_URLS]
 
+    print("Create tasks")
     tasks = [parsing_url(url) for url in urls]
     pending = list(asyncio.as_completed(tasks))
 
+    print("Running tasks")
+    reviews_dao = ReviewsDAO(DB_NAME)
+    await reviews_dao.setup_db()
+    print("Database setup")
+
+    i = 0
     while pending:
         done_taks = pending.pop(0)
         reviews = await done_taks
-        for review in reviews:
-            for field in review.values():
-                print(field)
-            print("\n")
+        print(f"Get {i} task")
+
+        # Считываем отзывы с конца
+        reviews.reverse()
+        for ordinal_number, review_data in enumerate(reviews):
+            await reviews_dao.insert_review(review_data, ordinal_number, urls[i])
+
+        i += 1
 
 
 if __name__ == "__main__":
