@@ -8,6 +8,7 @@ DATE_CSS_SELECTOR = "div._a5f6uz"
 
 NUMBER_OF_REVIEWS_CSS_SELECTOR = "span._1xhlznaa"
 TAB_NAVIGATOR_CSS_SELECTOR = "div._qvsf7z"
+REVIEW_CONTAINER_CSS_SELECTOR = "div._1k5soqfl"
 REVIEW_CSS_SELECTOR = "div._49x36f > a"
 RATING_CSS_SELECTOR = "div._1fkin5c"
 
@@ -32,6 +33,9 @@ class ReviewesParser:
     def get_rewiews(self, last_saved_review: int = 0) -> list[dict[str, str]]:
         """
         Парсит html страницу и вытаскивает из неё все отзывы в виде словаря.
+
+        Args:
+            last_saved_review: порядковый номер последнего сохраненного отзыва
 
         Returns:
             Поля:
@@ -64,7 +68,7 @@ class ReviewesParser:
             raise ParserError(err_msg)
 
         reviews_container = reviews_tab[1]
-        reviews = reviews_container.select("div._1k5soqfl")
+        reviews = reviews_container.select(REVIEW_CONTAINER_CSS_SELECTOR)
         if len(reviews) < number_of_new_reviews:
             err_msg = "Количество отзывов на странице, меньше чем новых отзывов"
             raise ParserError(err_msg)
