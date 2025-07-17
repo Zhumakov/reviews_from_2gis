@@ -49,6 +49,7 @@ ignore = [
   "PLR0913",
   "PLR0917",
   "RUF003",
+  "FURB140",
 ]
 exclude = []
 select = ["ALL"]
