@@ -30,7 +30,27 @@
 
 `0 3 * * * /path/to/reviews_from_2gis/command.sh >> /path/to/reviews_from_2gis/cron_logs.txt`
 
-Где `/path/to/reviews_from_2gis` - путь по которому лежит директория с парсером
+Где `/path/to/reviews_from_2gis` - путь по которому лежит директория с проектом
+
+Добавить ссылки на организации, отзывы на которые нужно спарсить можно либо создав файл `.env` в корне проекта,
+со следующим содержимым:
+
+```
+BRANCH_URLS=url1,url2,url3...
+```
+
+Где `url` - это ссылки на карточку организации, например:
+`https://2gis.ru/ufa/search/%D0%B2%D0%BA%D1%83%D1%81%D0%BD%D0%BE%20%D0%B8%20%D1%82%D0%BE%D1%87%D0%BA%D0%B0/firm/70000001057550594`
+
+Тогда команда будет выглядеть так:
+
+`sudo docker run -d -v ./reviews_db:/project/reviews_db --env_file .env --rm reviews_parser:latest python -m source.main`
+
+Или передавая переменную напрямую:
+
+`sudo docker run -d -v ./reviews_db:/project/reviews_db \
+      -e BRANCH_URLS=url1,url2,url3 \
+      --rm reviews_parser:latest python -m source.main`
 
 Есть отдельный скрипт для получения отзывов из базы данных, он создаёт файл reviews.txt с отзывами,
 в качестве аргумента нужно передать url указывающий на карточку организации в 2GIS.

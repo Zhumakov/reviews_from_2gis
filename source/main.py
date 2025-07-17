@@ -44,10 +44,6 @@ async def main() -> None:
         global REVIEWS_ENDPOINT
         REVIEWS_ENDPOINT = new_reviews_endpoint
 
-    if (new_loading_wait := os.getenv("LOADING_WAIT", None)) is not None:
-        global LOADING_WAIT
-        LOADING_WAIT = float(new_loading_wait)
-
     # Инициализация базы данных
     reviews_dao = ReviewsDAO(DB_PATH)
     await reviews_dao.setup_db()
