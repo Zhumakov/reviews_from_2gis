@@ -1,4 +1,18 @@
 import re
+from typing import NamedTuple
+
+
+class UrlData(NamedTuple):
+    """
+    Представляет url данные.
+
+    Attributes:
+        reviews_url: url страницы с отзывами
+        firm_id: id организации
+    """
+
+    reviews_url: str
+    firm_id: str
 
 
 class UrlNormilizer:
@@ -14,7 +28,7 @@ class UrlNormilizer:
         """
         self.review_endpoint = review_endpoint
 
-    def normilize(self, url: str) -> tuple[str, str]:
+    def normilize(self, url: str) -> UrlData:
         """
         Нормализует url, чтобы он указывал на вкладку с отзывами.
 
@@ -22,9 +36,7 @@ class UrlNormilizer:
             url: исходный адрес
 
         Returns:
-            Tuple:
-                1 - url адрес на вкладку с отзывами,
-                2 - id организации
+            UrlData
 
         Raises:
             ValueError: Неправильная ссылка
@@ -38,4 +50,4 @@ class UrlNormilizer:
 
         firm_url = firm_page.group(1)
         firm_id = firm_page.group(2)
-        return firm_url + self.review_endpoint, firm_id
+        return UrlData(reviews_url=(firm_url + self.review_endpoint), firm_id=firm_id)

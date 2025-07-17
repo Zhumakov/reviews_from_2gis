@@ -56,14 +56,15 @@ async def test_review_parser(
 
 
 @pytest.mark.parametrize(
-    ("plained_username", "last_saved_message", "find"),
+    ("plained_username", "last_saved_review", "find"),
     [
-        ("кира ракова", 87, False),
-        ("Емеля Емеля", 87, True),
+        ("кира ракова", 88, False),
+        ("Емеля Емеля", 88, True),
     ],
 )
 async def test_chunk_review_parser(
     plained_username: str,
+    last_saved_review: int,
     find: bool,
     html_content: str,
 ) -> None:
@@ -77,9 +78,7 @@ async def test_chunk_review_parser(
 
     """
     parser = ReviewesParser(html_content)
-    reviews: list[dict[str, str]] = parser.get_rewiews()
-
-    assert reviews, "Отзывы не были найдены"
+    reviews: list[dict[str, str]] = parser.get_rewiews(last_saved_review)
 
     for review in reviews:
         if plained_username in review.get("username", ""):

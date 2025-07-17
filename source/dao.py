@@ -3,14 +3,14 @@ import aiosqlite
 
 TABLE_CREATE_QUERY = """
 CREATE TABLE IF NOT EXISTS reviews (
-    ordinal_numer INTEGER NOT NULL,
+    ordinal_number INTEGER NOT NULL,
     firm_id TEXT NOT NULL,
     username TEXT NOT NULL,
     date TEXT NOT NULL,
     review TEXT NOT NULL,
     rating INTEGER NOT NULL,
 
-    PRIMARY KEY (ordinal_numer, firm_id),
+    PRIMARY KEY (ordinal_number, firm_id),
     CHECK (rating BETWEEN 1 AND 5)
 );
 """
@@ -61,7 +61,7 @@ class ReviewsDAO:
         async with aiosqlite.connect(self.db_name) as db:
             await db.execute(
                 """
-                INSERT INTO reviews (ordinal_numer, firm_id, username, date, review, rating)
+                INSERT INTO reviews (ordinal_number, firm_id, username, date, review, rating)
                 VALUES (?, ?, ?, ?, ?, ?);
                 """,
                 (
@@ -75,5 +75,28 @@ class ReviewsDAO:
             )
             await db.commit()
 
-    async def get_last_insert_review(self, url: str) -> dict:
-        pass
+    async def get_last_insert_review(self, firm_id: str) -> int:
+        """
+        Возвращает порядковый номер последнего сохраненного отзыва.
+
+        Args:
+            firm_id: id организации, для которой нужно найти отзыв
+
+        Returns:
+            порядковый номер последнего сохраненного отзыва
+
+        """
+        async with aiosqlite.connect(self.db_name) as db:
+            cursor = await db.execute(
+                """
+                SELECT * FROM reviews
+                WHERE firm_id = ?
+                ORDER BY ordinal_number DESC
+                LIMIT 1;
+                """,
+                (firm_id,),
+            )
+            row = await cursor.fetchone()
+            if row is None:
+                return 0
+            return row[0]

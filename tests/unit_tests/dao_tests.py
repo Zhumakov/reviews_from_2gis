@@ -2,7 +2,7 @@ from aiosqlite import IntegrityError
 import pytest
 
 from source.dao import ReviewsDAO
-from tests.conftest import TEST_URL
+from tests.conftest import TEST_URL, TEST_FIRM_ID
 
 
 @pytest.mark.parametrize(
@@ -100,8 +100,28 @@ async def test_review_insert(
         await reviews_dao.insert_review(
             review_data,
             ordinal_numer,
-            TEST_URL,
+            TEST_FIRM_ID,
         )
         assert not fail
     except IntegrityError:
         assert fail
+
+
+@pytest.mark.parametrize(
+    ("firm_id_to_insert", "firm_id_to_get", "plained_ordinal_number"),
+    [("1", "1", 1), ("2", "99999999", 0)],
+)
+async def test_get_last_review(
+    firm_id_to_insert: str,
+    firm_id_to_get: str,
+    plained_ordinal_number: str,
+    reviews_dao: ReviewsDAO,
+) -> None:
+    await reviews_dao.insert_review(
+        {"username": "Некто", "date": "1 октября 295", "review": "Ещё не открылся", "rating": 1},
+        1,
+        firm_id_to_insert,
+    )
+
+    last_ordinal_number = await reviews_dao.get_last_insert_review(firm_id_to_get)
+    assert last_ordinal_number == plained_ordinal_number
